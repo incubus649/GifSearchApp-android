@@ -1,2 +1,2 @@
 # GifSearchApp-android
-Test task for Chili Labs
+Test task for Chili Labs android developer!
