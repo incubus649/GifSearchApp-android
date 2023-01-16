@@ -1,37 +1,48 @@
 package com.example.gifsearchapp;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.graphics.Picture;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.GridLayout;
 import android.widget.GridView;
-import android.widget.ListView;
+import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.ListPreloader;
+import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.util.ViewPreloadSizeProvider;
+import com.bumptech.glide.util.Preconditions;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-
 
 public class MainActivity extends AppCompatActivity {
 
     Button btn_searchGif;
     EditText et_dataInput;
-    // ListView lv_gifResult;
     GridView gv_gifResult;
 
     @Override
@@ -42,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
         // Assign values to each control of layout
         btn_searchGif = findViewById(R.id.btn_searchGif);
         et_dataInput = findViewById(R.id.et_dataInput);
-        // lv_gifResult = findViewById(R.id.lv_gifResult);
         gv_gifResult = findViewById(R.id.gv_gifResult);
 
         // Create instance of the GiphyDataService class
@@ -63,13 +73,13 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onResponse(List<GiphyResultModel> giphyResultModels) {
+                    public void onResponse(ArrayList<GiphyResultModel> giphyResultModels) {
 
-                        ArrayAdapter arrayAdapter = new ArrayAdapter(MainActivity.this, android.R.layout.simple_list_item_1, giphyResultModels);
-                        // ImageAdapter imageAdapter = new ImageAdapter(MainActivity.this, giphyResultModels);
+                        RequestBuilder<Drawable> gifItemRequest = Glide.with(MainActivity.this).asDrawable();
 
-                        gv_gifResult.setAdapter(arrayAdapter);
-                        // gv_gifResult.setAdapter(imageAdapter);
+                        GiphyAdapter adapter = new GiphyAdapter(MainActivity.this, giphyResultModels);
+                        gv_gifResult.setAdapter(adapter);
+
                     }
                 });
 
@@ -77,56 +87,60 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public class GiphyAdapter extends BaseAdapter {
+        private Context context;
+        private ArrayList<GiphyResultModel> giphyResultModels;
 
-    /*
+        public GiphyAdapter(Context context, ArrayList<GiphyResultModel> giphyResultModels) {
+            super();
+            this.context = context;
+            this.giphyResultModels = giphyResultModels;
+        }
 
-    TODO: addTextChangedListener not working for some reason thus making it impossible for auto-submit et_dataInput
+        @Override
+        public int getCount() {
+            return giphyResultModels.size();
+        }
 
-    // Implemented editText that sends request 300 milliseconds after user stops typing
-    // Source code - https://stackoverflow.com/questions/35224459/how-to-detect-if-users-stop-typing-in-edittext-android
+        @Override
+        public GiphyResultModel getItem(int i) {
+            return giphyResultModels.get(i);
+        }
 
-    // Delay in milliseconds for auto-submitting editText after user stops typing
-    long delay = 300;
+        @Override
+        public long getItemId(int i) {
+            return 0;
+        }
 
-    // Time in milliseconds when the last change was made
-    long lastEdit = 0;
+        @Override
+        public View getView(int i, View convertView, ViewGroup parent)
+        {
 
-    Handler handler = new Handler();
+            View row = convertView;
+            ViewHolder holder = null;
 
-    // Starts a thread after n milliseconds when the user stops typing
-    // Sends request to Giphy API
-    private Runnable inputFinished = new Runnable() {
-        public void run() {
-            if (System.currentTimeMillis() > (lastEdit + delay)) {
-                // API request here
+            if (row == null) {
+                row = LayoutInflater.from(context).inflate(R.layout.grid_layout, null);
+                holder = new ViewHolder();
+                holder.imageView = row.findViewById(R.id.imageView);
+                row.setTag(holder);
             }
-        }
-    };
-
-    et_dataInput.addTextChangedListener(new TextWatcher() {
-
-        @Override
-        public void beforeTextChanged(final CharSequence s, final int start, final int count, final int after){
-
-        }
-
-        @Override
-        public void onTextChanged(final CharSequence s, final int start, final int before, final int count) {
-            handler.removeCallbacks(inputFinished);
-        }
-
-        @Override
-        public void afterTextChanged(final Editable s) {
-            // Event is not triggered if the editText is empty
-            if (s.length() > 0) {
-                lastEdit = System.currentTimeMillis();
-                handler.postDelayed(inputFinished, delay);
+            else {
+                holder = (ViewHolder) row.getTag();
             }
-        }
-    });
 
-     */
+            String gif = giphyResultModels.get(i).toString();
+            Glide.with(context)
+                    .load(gif)
+                    .into(holder.imageView);
+
+            return row;
+        }
+
+        public class ViewHolder {
+            ImageView imageView;
+        }
+    }
 }
-
 
 

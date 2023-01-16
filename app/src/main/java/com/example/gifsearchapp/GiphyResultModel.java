@@ -2,6 +2,8 @@ package com.example.gifsearchapp;
 
 import android.graphics.drawable.Drawable;
 
+import com.bumptech.glide.Glide;
+
 import org.json.JSONObject;
 
 import java.io.InputStream;

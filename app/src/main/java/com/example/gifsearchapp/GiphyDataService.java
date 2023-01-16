@@ -33,22 +33,11 @@ public class GiphyDataService {
     public interface GifBySearchValueResponse {
         void onError(String message);
 
-        void onResponse(List<GiphyResultModel> giphyResultModels);
-    }
-
-    // Get images from url
-    public static Drawable loadImageFromWebOperations(String url) {
-        try {
-            InputStream is = (InputStream) new URL(url).getContent();
-            Drawable d = Drawable.createFromStream(is, "gif");
-            return d;
-        } catch (Exception e) {
-            return null;
-        }
+        void onResponse(ArrayList<GiphyResultModel> giphyResultModels);
     }
 
     public void getGifBySearchValue(String q, GifBySearchValueResponse gifBySearchValueResponse) {
-        List<GiphyResultModel> giphyResultModels = new ArrayList<>();
+        ArrayList<GiphyResultModel> giphyResultModels = new ArrayList<>();
 
         String url = GIF_URL + "?api_key=" + API_KEY + "&q=" + q;
 
@@ -66,11 +55,11 @@ public class GiphyDataService {
                         GiphyResultModel one_gif = new GiphyResultModel();
                         JSONObject first_gif_from_api = (JSONObject) data.get(i);
                         JSONObject images = first_gif_from_api.getJSONObject("images");
-                        JSONObject original = images.getJSONObject("original");
+                        JSONObject fixed_width = images.getJSONObject("fixed_width");
 
-                        one_gif.setHeight(original.getString("height"));
-                        one_gif.setWidth(original.getString("width"));
-                        one_gif.setUrl(original.getString("url"));
+                        one_gif.setHeight(fixed_width.getString("height"));
+                        one_gif.setWidth(fixed_width.getString("width"));
+                        one_gif.setUrl(fixed_width.getString("url"));
 
                         giphyResultModels.add(one_gif);
 
@@ -85,7 +74,7 @@ public class GiphyDataService {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(context, "You shithead!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Error! Something went wrong...", Toast.LENGTH_SHORT).show();
             }
         });
 
